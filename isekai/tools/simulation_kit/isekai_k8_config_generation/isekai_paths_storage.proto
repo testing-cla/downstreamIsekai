@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+package isekai;
+
+// Stores the information for all the paths needed to create the docker image in
+// the open sourced version. Since there are multiple docker images, we need to
+// store the paths for each of them to copy them.
+message ConfigGenerationPaths {
+  // The path to where the simulation config file was created.
+  optional string simulation_config_output_path = 1;  // Required
+
+  // The path to where the ini file was created.
+  optional string ini_file_path = 2;  // Required
+
+  // The path to where the simulation results are going to be stored.
+  optional int32 simulation_index = 3;  // Required
+}
+
+// Stores the ini and simulation config with their respective configurations.
+// The config file and ini file depend on each other. Also stores the simulation
+// sweep path, ned path and routing path. The sweep, ned and routing paths are
+// provided by the user and will be shared across simulations.
+message ConfigGenerationCollection {
+  repeated ConfigGenerationPaths paths = 1;  // Required
+
+  // The path to the simulation sweep config.
+  optional string simultion_sweep_config_path = 2;
+
+  // The path to where the ned file was stored.
+  optional string ned_file_path = 3;  // Required
+
+  // The path to where the routing files were stored.
+  optional string routing_file_path = 4;  // Required
+}

@@ -1,0 +1,142 @@
+syntax = "proto2";
+
+package isekai;
+
+// Simulation sweep configuration for simulation kit.
+message SimulationSweepConfig {
+  message SimulationConfigParameter {
+    // The name, value pair for isekai::SimulationConfig. The name is a
+    // hierarchy name separated by ".". E.g. name =
+    // "traffic_pattern.uniform_random.traffic_characteristics.conn_type", value
+    // = "ORDERED_RC". The proto is generated from text proto. The text proto is
+    // generated via string processing from SimulationConfigParameter. If more
+    // functionalities are needed, proto reflection can help for that. The value
+    // can be also a submessage.
+    optional string name = 1;
+    optional string value = 2;
+    // Is the field a single parameter or sub message.
+    optional bool is_submessage = 3 [default = false];
+  }
+
+  // Name of the simulation sweep.
+  optional string simulation_sweep_name = 1;  // Required
+  // The path to the output directory for processed result from the simulations.
+  // For simulation sweep, the processed_result_output_path, config_output_path,
+  // and simulation_result_output_path, will be automatically set to
+  // processed_result_output_path/user_name/ttl=x/yy/mm/dd/simulation_sweep_name/processed_results,
+  // processed_result_output_path/user_name/ttl=x/yy/mm/dd/simulation_sweep_name/config,
+  // and
+  // processed_result_output_path/user_name/ttl=x/yy/mm/dd/simulation_sweep_name/simulation_results
+  // respectively.
+  optional string processed_result_output_path = 2;  // Required
+  // The path to the output directory for the simulation configurations.
+  optional string config_output_path =
+      3;  // Required if not for simulation sweep.
+  // The path to the output directory for the simulation results.
+  optional string simulation_result_output_path =
+      4;  // Required if not for simulation sweep.
+  // Borg user.
+  optional string borg_user = 6;  // Required
+  // Borg cell.
+  optional string borg_cell = 7;  // Required
+  // Simulation sweeping parameters (parameters for isekai::SimulationConfig).
+  repeated SimulationConfigParameter simulation_config_parameters =
+      8;  // Repeated
+  // Link speed in Gbps, the link speed between routers and between host and
+  // routers. If link_speed_gbps < 0, the link speed will be retrieved from NIB
+  // snapshot.
+  optional double link_speed_gbps = 9 [default = -1];  // Required.
+  // The TTL for the simulation path in number of days. The TTL will be part of
+  // the output directories and enforced by CNS. If you would like to not
+  // enforce TTL on the output directories, set the value to 0.
+  optional uint32 ttl_in_days = 10 [default = 60];
+}
+
+// Assignments of simulation results to processing tasks.
+message SimulationResultsProcessingAssignments {
+  message Assignment {
+    // The index of the process task.
+    optional int32 process_task_index = 1;  // Required
+    // The indexes of the simulations assigned to the process task.
+    repeated int32 assigned_simulation_task_indexes = 2;  // Repeated
+  }
+  // Assignments of simulation results.
+  repeated Assignment assignments = 1;  // Repeated
+}
+
+// Processed result for one Isekai OMNest simulation in the simulation sweep.
+message SimulationResult {
+  // Processed scalar data.
+  message ScalarData {
+    message ScalarDataPoint {
+      // Metric name.
+      optional string name = 1;  // Required
+      // Value for the metric.
+      optional double value = 2;  // Required
+    }
+
+    optional string host_id = 1;                      // Required
+    repeated ScalarDataPoint scalar_data_points = 2;  // Repeated
+  }
+
+  // Extracted vector metadata for the Isekai OMNest simulation.
+  message VectorMetadata {
+    // OMNest vector attribute data point.
+    message AttributeData {
+      // Name of the attribute.
+      optional string attr_name = 1;  // Required
+      // Value of the attribute.
+      optional string value = 2;  // Required
+    }
+
+    // Name of the vector.
+    optional string vector_name = 1;  // Required
+    // Name of the module.
+    optional string module_name = 2;  // Required
+    // Id of the vector.
+    optional int64 vector_id = 3;  // Required
+    // Attributes of the vector.
+    repeated AttributeData attributes = 4;  // Repeated
+  }
+
+  // Configuration parameters for the simulation.
+  message Parameter {
+    // Parameter name. The name is referred to hierarchical name for fields in
+    // isekai::SimulationConfig. For example, name =
+    // "traffic_pattern.uniform_random.traffic_characteristics.conn_type", value
+    // = "ORDERED_RC"
+    optional string name = 1;  // Required
+    // Parameter value.
+    optional string value = 2;  // Required
+  }
+
+  // Name of the simulation sweep.
+  optional string simulation_sweep_name = 1;  // Required
+  // The index of the simulation task.
+  optional int32 simulation_index = 2;  // Required
+  // The parameters for the Isekai OMNest simulation.
+  repeated Parameter parameters = 3;  // Repeated
+  // Processed scalar data for the Isekai OMNest simulation.
+  repeated ScalarData scalar_data = 4;  // Repeated
+  // Extracted vector metadata for the Isekai OMNest simulation.
+  repeated VectorMetadata vector_metadata = 5;  // Repeated
+}
+
+// OMNest vector time series data point. In F1, performance with nested/repeated
+// sub messages are not as good as performance with flatten messages. To query
+// with nested and repeated sub messages, the repeated field needs to be joined
+// with the owning table. So the VectorTimeSeriesDataPoint is not put as a
+// repeated field in isekai::SimulationResult. This proto message is used to
+// compose a flatten table for vector time series data.
+message VectorTimeSeriesDataPoint {
+  // The index of the simulation task.
+  optional int32 simulation_index = 1;  // Required
+  // Id of the vector.
+  optional int64 vector_id = 2;  // Required
+  // Event number.
+  optional int64 event_num = 3;  // Required
+  // Timestamp. The unit is second.
+  optional double timestamp_sec = 4;  // Required
+  // Value.
+  optional double value = 5;  // Required
+}

@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package isekai.rue;
+
+import "isekai/host/falcon/rue/algorithm/bypass.proto";
+import "isekai/host/falcon/rue/algorithm/swift.proto";
+
+message AlgorithmConfiguration {
+  oneof config_oneof {
+    BypassConfiguration bypass = 1;
+    SwiftConfiguration swift = 2;
+  }
+}
